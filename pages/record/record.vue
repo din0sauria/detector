@@ -13,10 +13,10 @@
     </view>
 
     <!-- 波形可视化 -->
-    <view class="visualizer" v-if="state !== 0">
+<!--    <view class="visualizer" v-if="state !== 0">
       <view v-for="(bar, index) in visualizerBars" :key="index" class="bar" :style="{ height: bar.height + 'px' }">
       </view>
-    </view>
+    </view> -->
 
     <!-- 控制按钮组 -->
     <view class="controls">
@@ -45,14 +45,16 @@
         <uni-icons type="download" size="24" color="#666"></uni-icons>
         <text>保存本地</text>
       </button>
-      
+
       <button class="action-btn" :disabled="!tempFilePath" @tap="uploadFile">
         <uni-icons type="cloud-upload" size="24" color="#666"></uni-icons>
-        <text>上传云端</text>
+        <text>云端检测</text>
       </button>
-    </view>
 
+    </view>
+    <view style="margin-top: 20rpx;">云端检测伪造概率：{{result}}%</view>
   </view>
+
 
 
 </template>
@@ -77,6 +79,7 @@
   const time = ref(0)
   const tempFilePath = ref(null)
   const timer = ref(null)
+  const result = ref(0)
 
   // 时间显示
   const timeDisplay = reactive({
@@ -156,7 +159,7 @@
     tape.stop()
     resetTimer()
     uni.showToast({
-      title: '自动保存成功',
+      title: '保存成功',
       duration: 1000
     })
   }
@@ -257,23 +260,15 @@
       const res = await uni.uploadFile({
         url: 'http://110.41.61.229:3006/common/upload', // 替换为实际接口
         filePath: tempFilePath.value,
-        header: {
-          'Authorization': 'Bearer ' + uni.getStorageSync('token')
-        },
         name: 'file',
         formData: {
           'content-type': 'multipart/form-data'
         }
       })
+      console.log(res.data)
+      const receive = JSON.parse(res.data)
+      result.value  = Number((parseFloat(receive.probability) * 100).toFixed(2))
 
-      if (res.statusCode === 200) {
-        uni.showToast({
-          title: '上传成功',
-          icon: 'success'
-        })
-      } else {
-        throw new Error(`上传失败：${res.data}`)
-      }
     } catch (error) {
       uni.showModal({
         title: '上传失败',

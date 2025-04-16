@@ -49,7 +49,6 @@ const _sfc_main = {
     progressBarStyle() {
       const endAngle = this.percent / 100 * 360;
       const colors = Array.isArray(this.progressColor) ? this.progressColor : [this.progressColor];
-      common_vendor.index.__f__("log", "at pages/index/ring.vue:71", colors);
       let gradient = "conic-gradient(";
       colors.forEach((color, index) => {
         const stop = (endAngle * (index / (colors.length - 1))).toFixed(2);
@@ -87,7 +86,7 @@ const _sfc_main = {
       const radius = (this.size - this.ballSize) / 2;
       const center = this.size / 2;
       const c = this.progressColor[this.progressColor.length - 1];
-      common_vendor.index.__f__("log", "at pages/index/ring.vue:110", c);
+      common_vendor.index.__f__("log", "at pages/index/ring.vue:109", c);
       const x = center + radius * Math.cos(angle);
       const y = center + radius * Math.sin(angle);
       return {

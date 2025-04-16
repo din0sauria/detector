@@ -17,6 +17,7 @@ const _sfc_main = {
     const time = common_vendor.ref(0);
     const tempFilePath = common_vendor.ref(null);
     const timer = common_vendor.ref(null);
+    const result = common_vendor.ref(0);
     const timeDisplay = common_vendor.reactive({
       h: "00",
       m: "00",
@@ -34,7 +35,7 @@ const _sfc_main = {
     };
     const updateTime = () => {
       if (!timeDisplay) {
-        common_vendor.index.__f__("error", "at pages/record/record.vue:104", "timeDisplay is undefined");
+        common_vendor.index.__f__("error", "at pages/record/record.vue:107", "timeDisplay is undefined");
         return;
       }
       const total = time.value || 0;
@@ -43,7 +44,7 @@ const _sfc_main = {
       timeDisplay.s = formatTime(Math.floor(total % 60));
     };
     const handleRecord = () => {
-      common_vendor.index.__f__("log", "at pages/record/record.vue:116", "handleRecord");
+      common_vendor.index.__f__("log", "at pages/record/record.vue:119", "handleRecord");
       switch (state.value) {
         case 0:
           startRecording();
@@ -77,7 +78,7 @@ const _sfc_main = {
       tape.stop();
       resetTimer();
       common_vendor.index.showToast({
-        title: "自动保存成功",
+        title: "保存成功",
         duration: 1e3
       });
     };
@@ -112,7 +113,7 @@ const _sfc_main = {
     common_vendor.computed(() => {
       return ["开始录音", "暂停录音", "继续录音"][state.value];
     });
-    const visualizerBars = common_vendor.ref(
+    common_vendor.ref(
       Array.from({
         length: 15
       }, () => ({
@@ -158,22 +159,14 @@ const _sfc_main = {
           url: "http://110.41.61.229:3006/common/upload",
           // 替换为实际接口
           filePath: tempFilePath.value,
-          header: {
-            "Authorization": "Bearer " + common_vendor.index.getStorageSync("token")
-          },
           name: "file",
           formData: {
             "content-type": "multipart/form-data"
           }
         });
-        if (res.statusCode === 200) {
-          common_vendor.index.showToast({
-            title: "上传成功",
-            icon: "success"
-          });
-        } else {
-          throw new Error(`上传失败：${res.data}`);
-        }
+        common_vendor.index.__f__("log", "at pages/record/record.vue:268", res.data);
+        const receive = JSON.parse(res.data);
+        result.value = Number((parseFloat(receive.probability) * 100).toFixed(2));
       } catch (error) {
         common_vendor.index.showModal({
           title: "上传失败",
@@ -185,52 +178,44 @@ const _sfc_main = {
       }
     };
     return (_ctx, _cache) => {
-      return common_vendor.e({
+      return {
         a: common_vendor.t((timeDisplay == null ? void 0 : timeDisplay.h) || "00"),
         b: common_vendor.t((timeDisplay == null ? void 0 : timeDisplay.m) || "00"),
         c: common_vendor.t((timeDisplay == null ? void 0 : timeDisplay.s) || "00"),
-        d: state.value !== 0
-      }, state.value !== 0 ? {
-        e: common_vendor.f(visualizerBars.value, (bar, index, i0) => {
-          return {
-            a: index,
-            b: bar.height + "px"
-          };
-        })
-      } : {}, {
-        f: common_vendor.p({
+        d: common_vendor.p({
           type: "headphones",
           size: "30",
           color: "blue"
         }),
-        g: !tempFilePath.value ? 1 : "",
-        h: common_vendor.o(playRecording),
-        i: state.value === 1 ? 1 : "",
-        j: state.value === 2 ? 1 : "",
-        k: common_vendor.o(handleRecord),
-        l: common_vendor.p({
+        e: !tempFilePath.value ? 1 : "",
+        f: common_vendor.o(playRecording),
+        g: state.value === 1 ? 1 : "",
+        h: state.value === 2 ? 1 : "",
+        i: common_vendor.o(handleRecord),
+        j: common_vendor.p({
           type: "circle-filled",
           size: "30",
           color: "red"
         }),
-        m: state.value === 0 ? 1 : "",
-        n: common_vendor.o(stopRecording),
-        o: common_vendor.t(statusMessage.value),
-        p: common_vendor.p({
+        k: state.value === 0 ? 1 : "",
+        l: common_vendor.o(stopRecording),
+        m: common_vendor.t(statusMessage.value),
+        n: common_vendor.p({
           type: "download",
           size: "24",
           color: "#666"
         }),
-        q: !tempFilePath.value,
-        r: common_vendor.o(saveToLocal),
-        s: common_vendor.p({
+        o: !tempFilePath.value,
+        p: common_vendor.o(saveToLocal),
+        q: common_vendor.p({
           type: "cloud-upload",
           size: "24",
           color: "#666"
         }),
-        t: !tempFilePath.value,
-        v: common_vendor.o(uploadFile)
-      });
+        r: !tempFilePath.value,
+        s: common_vendor.o(uploadFile),
+        t: common_vendor.t(result.value)
+      };
     };
   }
 };

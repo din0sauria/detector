@@ -68,7 +68,6 @@
         const colors = Array.isArray(this.progressColor) ?
           this.progressColor :
           [this.progressColor]
-        console.log(colors)
         let gradient = 'conic-gradient('
         colors.forEach((color, index) => {
           const stop = (endAngle * (index / (colors.length - 1))).toFixed(2)
