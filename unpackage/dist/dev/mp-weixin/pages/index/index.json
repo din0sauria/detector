@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "音频伪造检测工具",
+  "usingComponents": {
+    "progress-circle-bar": "./ring"
+  }
+}

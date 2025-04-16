@@ -1,0 +1,457 @@
+<template>
+  <view class="container">
+    <!-- 标题 -->
+    <view class="title">声音录制</view>
+
+    <!-- 时间显示 -->
+    <view class="time-display">
+      <text class="time">{{ timeDisplay?.h||'00' }}</text>
+      <text class="colon">:</text>
+      <text class="time">{{ timeDisplay?.m||'00' }}</text>
+      <text class="colon">:</text>
+      <text class="time">{{ timeDisplay?.s||'00' }}</text>
+    </view>
+
+    <!-- 波形可视化 -->
+    <view class="visualizer" v-if="state !== 0">
+      <view v-for="(bar, index) in visualizerBars" :key="index" class="bar" :style="{ height: bar.height + 'px' }">
+      </view>
+    </view>
+
+    <!-- 控制按钮组 -->
+    <view class="controls">
+      <!-- 播放按钮 -->
+      <button class="control-btn play-btn" :class="{ disabled: !tempFilePath }" @tap="playRecording">
+        <uni-icons type="headphones" size="30" color="blue"></uni-icons>
+      </button>
+
+      <!-- 主录音按钮 -->
+      <view class="main-btn" :class="{ recording: state === 1, paused: state === 2 }" @tap="handleRecord">
+        <view class="inner-circle"></view>
+      </view>
+
+      <!-- 停止按钮 -->
+      <button class="control-btn stop-btn" :class="{ disabled: state === 0 }" @tap="stopRecording">
+        <uni-icons type="circle-filled" size="30" color="red"></uni-icons>
+      </button>
+    </view>
+
+    <!-- 状态提示 -->
+    <view class="status-text">
+      {{ statusMessage }}
+    </view>
+    <view style="display:flex">
+      <button class="action-btn" :disabled="!tempFilePath" @tap="saveToLocal">
+        <uni-icons type="download" size="24" color="#666"></uni-icons>
+        <text>保存本地</text>
+      </button>
+      
+      <button class="action-btn" :disabled="!tempFilePath" @tap="uploadFile">
+        <uni-icons type="cloud-upload" size="24" color="#666"></uni-icons>
+        <text>上传云端</text>
+      </button>
+    </view>
+
+  </view>
+
+
+</template>
+<script setup>
+  import {
+    ref,
+    reactive,
+    onUnmounted,
+    computed
+  } from 'vue'
+  import {
+    onShow,
+    onLoad
+  } from '@dcloudio/uni-app';
+  // 录音管理器
+  const tape = uni.getRecorderManager()
+  // 音频上下文
+  const audio = uni.createInnerAudioContext()
+
+  // 响应式状态
+  const state = ref(0) // 0:停止 1:录音中 2:暂停
+  const time = ref(0)
+  const tempFilePath = ref(null)
+  const timer = ref(null)
+
+  // 时间显示
+  const timeDisplay = reactive({
+    h: '00',
+    m: '00',
+    s: '00'
+  })
+  onLoad(() => {
+    updateTime()
+  })
+  // 自动清理定时器
+  onUnmounted(() => {
+    clearInterval(timer.value)
+    audio.destroy()
+  })
+
+  // 格式化时间
+  const formatTime = (time) => {
+    return time < 10 ? `0${time}` : time
+  }
+
+  // 更新时间显示
+  const updateTime = () => {
+    if (!timeDisplay) {
+      console.error('timeDisplay is undefined')
+      return
+    }
+
+    const total = time.value || 0
+    timeDisplay.h = formatTime(Math.floor(total / 3600))
+    timeDisplay.m = formatTime(Math.floor((total % 3600) / 60))
+    timeDisplay.s = formatTime(Math.floor(total % 60))
+  }
+
+  // 开始/暂停录音
+  const handleRecord = () => {
+    console.log('handleRecord')
+    switch (state.value) {
+      case 0: // 开始录音
+        startRecording()
+        break
+      case 1: // 暂停录音
+        pauseRecording()
+        break
+      case 2: // 继续录音
+        resumeRecording()
+        break
+    }
+  }
+
+  // 开始录音
+  const startRecording = () => {
+    state.value = 1
+    tape.start()
+    startTimer()
+
+  }
+
+  // 暂停录音
+  const pauseRecording = () => {
+    state.value = 2
+    clearInterval(timer.value)
+    tape.pause()
+  }
+
+  // 继续录音
+  const resumeRecording = () => {
+    state.value = 1
+    tape.resume()
+    startTimer()
+  }
+
+  // 停止录音
+  const stopRecording = () => {
+    state.value = 0
+    clearInterval(timer.value)
+    tape.stop()
+    resetTimer()
+    uni.showToast({
+      title: '自动保存成功',
+      duration: 1000
+    })
+  }
+
+  // 播放录音
+  const playRecording = () => {
+    if (!tempFilePath.value) {
+      uni.showModal({
+        title: '提示',
+        content: '请先录制音频'
+      })
+      return
+    }
+    audio.src = tempFilePath.value
+    audio.play()
+    startarti.showToast({
+      title: '播放中',
+      duration: 1000
+    })
+  }
+
+  // 定时器逻辑
+  const startTimer = () => {
+    timer.value = setInterval(() => {
+      time.value++
+      updateTime()
+    }, 1000)
+  }
+
+  // 重置计时器
+  const resetTimer = () => {
+    time.value = 0
+    updateTime()
+  }
+
+  // 录音结束回调
+  tape.onStop((res) => {
+    tempFilePath.value = res.tempFilePath
+  })
+
+  // 计算按钮文本
+  const buttonText = computed(() => {
+    return ['开始录音', '暂停录音', '继续录音'][state.value]
+  })
+
+  // 新增可视化数据
+  const visualizerBars = ref(
+    Array.from({
+      length: 15
+    }, () => ({
+      height: Math.random() * 30 + 10
+    }))
+  )
+
+  // 状态提示消息
+  const statusMessage = computed(() => {
+    return [
+      '点击红色按钮开始录音',
+      '录音中...',
+      '已暂停'
+    ][state.value]
+  })
+
+  // 播放状态
+  const isPlaying = ref(false)
+
+  // 增加保存和上传方法
+  const saveToLocal = async () => {
+    if (!tempFilePath.value) return
+
+    try {
+      const res = uni.getFileSystemManager()
+      res.writeFileSync(`${wx.env.USER_DATA_PATH}/hello.txt`, tempFilePath.value)
+
+      uni.showToast({
+        title: `保存成功：${res.savedFilePath}`,
+        icon: 'success',
+        duration: 2000
+      })
+    } catch (error) {
+      uni.showModal({
+        title: '保存失败',
+        content: error.errMsg,
+        showCancel: false
+      })
+    }
+  }
+
+  const uploadFile = async () => {
+    if (!tempFilePath.value) return
+
+    uni.showLoading({
+      title: '上传中...',
+      mask: true
+    })
+
+    try {
+      const res = await uni.uploadFile({
+        url: 'http://110.41.61.229:3006/common/upload', // 替换为实际接口
+        filePath: tempFilePath.value,
+        header: {
+          'Authorization': 'Bearer ' + uni.getStorageSync('token')
+        },
+        name: 'file',
+        formData: {
+          'content-type': 'multipart/form-data'
+        }
+      })
+
+      if (res.statusCode === 200) {
+        uni.showToast({
+          title: '上传成功',
+          icon: 'success'
+        })
+      } else {
+        throw new Error(`上传失败：${res.data}`)
+      }
+    } catch (error) {
+      uni.showModal({
+        title: '上传失败',
+        content: error.message,
+        showCancel: false
+      })
+    } finally {
+      uni.hideLoading()
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 40rpx;
+  }
+
+  .title {
+    font-size: 48rpx;
+    color: #2c3e50;
+    letter-spacing: 4rpx;
+    margin: 60rpx 0;
+    font-weight: 500;
+  }
+
+  .time-display {
+    display: flex;
+    align-items: baseline;
+    margin: 40rpx 0;
+
+    .time {
+      font-size: 80rpx;
+      color: #2c3e50;
+      text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.1);
+    }
+
+    .colon {
+      font-size: 60rpx;
+      margin: 0 10rpx;
+      color: #666;
+    }
+  }
+
+  .visualizer {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 150rpx;
+    margin: 60rpx 0;
+    gap: 8rpx;
+
+    .bar {
+      width: 16rpx;
+      background: #409EFF;
+      border-radius: 8rpx;
+      transition: height 0.2s ease;
+    }
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 80rpx;
+    margin-top: 60rpx;
+  }
+
+  .main-btn {
+    width: 160rpx;
+    height: 160rpx;
+    border-radius: 50%;
+    background: #ff4444;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 8rpx 20rpx rgba(255, 68, 68, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+
+    &.recording {
+      animation: pulse 1.5s infinite;
+
+      .inner-circle {
+        width: 60rpx;
+        height: 60rpx;
+        border-radius: 12rpx;
+      }
+    }
+
+    &.paused {
+      background: #ffa500;
+
+      .inner-circle {
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 30rpx 0 30rpx 50rpx;
+        border-color: transparent transparent transparent #fff;
+      }
+    }
+  }
+
+  .inner-circle {
+    width: 80rpx;
+    height: 80rpx;
+    background: #fff;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+
+  .control-btn {
+    width: 100rpx;
+    height: 100rpx;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+
+    &.disabled {
+      opacity: 0.5;
+      filter: grayscale(1);
+    }
+
+    .icon {
+      width: 50rpx;
+      height: 50rpx;
+    }
+  }
+
+  .status-text {
+    margin: 20rpx;
+    color: #666;
+    font-size: 28rpx;
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.05);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .action-buttons {
+    margin-top: 40rpx;
+    display: flex;
+    gap: 40rpx;
+  }
+
+  .action-btn {
+    border-radius: 50rpx;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10rpx;
+    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+
+    &[disabled] {
+      opacity: 0.5;
+      filter: grayscale(1);
+    }
+
+    text {
+      font-size: 28rpx;
+      color: #666;
+    }
+  }
+</style>

@@ -1,0 +1,33 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/record/record"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "音频伪造检测工具",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "blue",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "/static/tab-index.png",
+        "selectedIconPath": "/static/tab-index-current.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/record/record",
+        "iconPath": "/static/tab-discover.png",
+        "selectedIconPath": "/static/tab-discover-current.png",
+        "text": "录音"
+      }
+    ]
+  },
+  "usingComponents": {}
+}
