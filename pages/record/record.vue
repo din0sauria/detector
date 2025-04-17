@@ -41,18 +41,26 @@
       {{ statusMessage }}
     </view>
     <view style="display:flex">
-      <button class="action-btn" :disabled="!tempFilePath" @tap="saveToLocal">
-        <uni-icons type="download" size="24" color="#666"></uni-icons>
-        <text>保存本地</text>
-      </button>
-
       <button class="action-btn" :disabled="!tempFilePath" @tap="uploadFile">
         <uni-icons type="cloud-upload" size="24" color="#666"></uni-icons>
         <text>云端检测</text>
       </button>
 
     </view>
-    <view style="margin-top: 20rpx;">云端检测伪造概率：{{result}}%</view>
+    <view style="margin-top: 30rpx;">
+      <text style="font-size: 28rpx; color: #2c3e50;">云端检测伪造概率：<text :style="{color: probabilityColor,'font-size':'36rpx'} ">{{result}}%</text></text>
+    </view>
+    <!-- 添加uniapp进度条 -->
+    <view style="width: 80%; margin-top: 20rpx;">
+      <progress 
+        :percent="result" 
+        stroke-width="12px" 
+        :activeColor="probabilityColor" 
+        backgroundColor="#e5e5e5" 
+        border-radius="6px"
+        active 
+      />
+    </view>
   </view>
 
 
@@ -226,28 +234,6 @@
   // 播放状态
   const isPlaying = ref(false)
 
-  // 增加保存和上传方法
-  const saveToLocal = async () => {
-    if (!tempFilePath.value) return
-
-    try {
-      const res = uni.getFileSystemManager()
-      res.writeFileSync(`${wx.env.USER_DATA_PATH}/hello.txt`, tempFilePath.value)
-
-      uni.showToast({
-        title: `保存成功：${res.savedFilePath}`,
-        icon: 'success',
-        duration: 2000
-      })
-    } catch (error) {
-      uni.showModal({
-        title: '保存失败',
-        content: error.errMsg,
-        showCancel: false
-      })
-    }
-  }
-
   const uploadFile = async () => {
     if (!tempFilePath.value) return
 
@@ -267,7 +253,15 @@
       })
       console.log(res.data)
       const receive = JSON.parse(res.data)
-      result.value  = Number((parseFloat(receive.probability) * 100).toFixed(2))
+      result.value = Number((parseFloat(receive.probability) * 100).toFixed(2))
+      
+      // 保存到历史记录
+      saveHistory({
+        fileName: '录音文件',
+        source: '录音上传',
+        result: result.value,
+        time: new Date().toLocaleString()
+      })
 
     } catch (error) {
       uni.showModal({
@@ -279,6 +273,25 @@
       uni.hideLoading()
     }
   }
+
+  // 保存历史记录
+  const saveHistory = (data) => {
+    let history = uni.getStorageSync('detectHistory') || []
+    history.unshift(data)
+    if (history.length > 50) history = history.slice(0, 50)
+    uni.setStorageSync('detectHistory', history)
+  }
+
+  // 仿照index的颜色计算逻辑
+  const probabilityColor = computed(() => {
+    const green = [0, 255, 0];
+    const red = [255, 0, 0];
+    const r = Math.round(red[0] * (result.value / 100) + green[0] * (1 - result.value / 100));
+    const g = Math.round(red[1] * (result.value / 100) + green[1] * (1 - result.value / 100));
+    const b = Math.round(red[2] * (result.value / 100) + green[2] * (1 - result.value / 100));
+    const hex = (r << 16 | g << 8 | b).toString(16).padStart(6, "0");
+    return `#${hex}`;
+  });
 </script>
 
 <style lang="scss" scoped>

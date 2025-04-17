@@ -35,7 +35,7 @@ const _sfc_main = {
     };
     const updateTime = () => {
       if (!timeDisplay) {
-        common_vendor.index.__f__("error", "at pages/record/record.vue:107", "timeDisplay is undefined");
+        common_vendor.index.__f__("error", "at pages/record/record.vue:115", "timeDisplay is undefined");
         return;
       }
       const total = time.value || 0;
@@ -44,7 +44,7 @@ const _sfc_main = {
       timeDisplay.s = formatTime(Math.floor(total % 60));
     };
     const handleRecord = () => {
-      common_vendor.index.__f__("log", "at pages/record/record.vue:119", "handleRecord");
+      common_vendor.index.__f__("log", "at pages/record/record.vue:127", "handleRecord");
       switch (state.value) {
         case 0:
           startRecording();
@@ -128,25 +128,6 @@ const _sfc_main = {
       ][state.value];
     });
     common_vendor.ref(false);
-    const saveToLocal = async () => {
-      if (!tempFilePath.value)
-        return;
-      try {
-        const res = common_vendor.index.getFileSystemManager();
-        res.writeFileSync(`${common_vendor.wx$1.env.USER_DATA_PATH}/hello.txt`, tempFilePath.value);
-        common_vendor.index.showToast({
-          title: `保存成功：${res.savedFilePath}`,
-          icon: "success",
-          duration: 2e3
-        });
-      } catch (error) {
-        common_vendor.index.showModal({
-          title: "保存失败",
-          content: error.errMsg,
-          showCancel: false
-        });
-      }
-    };
     const uploadFile = async () => {
       if (!tempFilePath.value)
         return;
@@ -164,9 +145,15 @@ const _sfc_main = {
             "content-type": "multipart/form-data"
           }
         });
-        common_vendor.index.__f__("log", "at pages/record/record.vue:268", res.data);
+        common_vendor.index.__f__("log", "at pages/record/record.vue:254", res.data);
         const receive = JSON.parse(res.data);
         result.value = Number((parseFloat(receive.probability) * 100).toFixed(2));
+        saveHistory({
+          fileName: "录音文件",
+          source: "录音上传",
+          result: result.value,
+          time: (/* @__PURE__ */ new Date()).toLocaleString()
+        });
       } catch (error) {
         common_vendor.index.showModal({
           title: "上传失败",
@@ -177,6 +164,22 @@ const _sfc_main = {
         common_vendor.index.hideLoading();
       }
     };
+    const saveHistory = (data) => {
+      let history = common_vendor.index.getStorageSync("detectHistory") || [];
+      history.unshift(data);
+      if (history.length > 50)
+        history = history.slice(0, 50);
+      common_vendor.index.setStorageSync("detectHistory", history);
+    };
+    const probabilityColor = common_vendor.computed(() => {
+      const green = [0, 255, 0];
+      const red = [255, 0, 0];
+      const r = Math.round(red[0] * (result.value / 100) + green[0] * (1 - result.value / 100));
+      const g = Math.round(red[1] * (result.value / 100) + green[1] * (1 - result.value / 100));
+      const b = Math.round(red[2] * (result.value / 100) + green[2] * (1 - result.value / 100));
+      const hex = (r << 16 | g << 8 | b).toString(16).padStart(6, "0");
+      return `#${hex}`;
+    });
     return (_ctx, _cache) => {
       return {
         a: common_vendor.t((timeDisplay == null ? void 0 : timeDisplay.h) || "00"),
@@ -201,20 +204,16 @@ const _sfc_main = {
         l: common_vendor.o(stopRecording),
         m: common_vendor.t(statusMessage.value),
         n: common_vendor.p({
-          type: "download",
-          size: "24",
-          color: "#666"
-        }),
-        o: !tempFilePath.value,
-        p: common_vendor.o(saveToLocal),
-        q: common_vendor.p({
           type: "cloud-upload",
           size: "24",
           color: "#666"
         }),
-        r: !tempFilePath.value,
-        s: common_vendor.o(uploadFile),
-        t: common_vendor.t(result.value)
+        o: !tempFilePath.value,
+        p: common_vendor.o(uploadFile),
+        q: common_vendor.t(result.value),
+        r: probabilityColor.value,
+        s: result.value,
+        t: probabilityColor.value
       };
     };
   }

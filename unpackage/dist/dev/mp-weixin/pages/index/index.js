@@ -47,15 +47,17 @@ const _sfc_main = {
             try {
               const data = JSON.parse(uploadRes.data);
               percent.value = Number((parseFloat(data.probability) * 100).toFixed(2));
-              common_vendor.index.showToast({
-                title: data.message,
-                icon: "none",
-                duration: 2e3
+              saveHistory({
+                fileName: name.value,
+                source: "文件上传",
+                result: percent.value,
+                time: (/* @__PURE__ */ new Date()).toLocaleString()
               });
             } catch (e) {
               common_vendor.index.showToast({
-                title: "解析响应失败",
-                icon: "error"
+                title: e,
+                icon: "error",
+                duration: 2e3
               });
             }
           },
@@ -64,14 +66,14 @@ const _sfc_main = {
               title: "上传失败",
               icon: "error"
             });
-            common_vendor.index.__f__("error", "at pages/index/index.vue:111", "上传失败:", err);
+            common_vendor.index.__f__("error", "at pages/index/index.vue:116", "上传失败:", err);
           },
           complete: () => {
             loading.value = false;
           }
         });
       } catch (err) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:118", "文件选择错误:", err);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:123", "文件选择错误:", err);
         common_vendor.index.showToast({
           title: "文件选择失败",
           icon: "error"
@@ -82,6 +84,13 @@ const _sfc_main = {
       common_vendor.index.navigateTo({
         url: "/pages/record/record"
       });
+    };
+    const saveHistory = (data) => {
+      let history = common_vendor.index.getStorageSync("detectHistory") || [];
+      history.unshift(data);
+      if (history.length > 50)
+        history = history.slice(0, 50);
+      common_vendor.index.setStorageSync("detectHistory", history);
     };
     return (_ctx, _cache) => {
       return {

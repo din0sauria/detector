@@ -91,17 +91,22 @@
           try {
             const data = JSON.parse(uploadRes.data)
             percent.value = Number((parseFloat(data.probability) * 100).toFixed(2))
-            uni.showToast({
-              title: data.message,
-              icon: 'none',
-              duration: 2000
+            
+            // 新增：保存到历史记录
+            saveHistory({
+              fileName: name.value,
+              source: '文件上传',
+              result: percent.value,
+              time: new Date().toLocaleString()
             })
+
           } catch (e) {
             uni.showToast({
-              title: '解析响应失败',
-              icon: 'error'
+              title: e,
+              icon: 'error',
+              duration: 2000
             })
-          }
+          } 
         },
         fail: (err) => {
           uni.showToast({
@@ -128,6 +133,14 @@
     uni.navigateTo({
       url: '/pages/record/record'
     })
+  }
+
+  // 新增：保存历史记录方法
+  const saveHistory = (data) => {
+    let history = uni.getStorageSync('detectHistory') || []
+    history.unshift(data)
+    if (history.length > 50) history = history.slice(0, 50)
+    uni.setStorageSync('detectHistory', history)
   }
 </script>
 
