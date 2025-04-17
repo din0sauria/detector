@@ -19,6 +19,7 @@
 - 构建工具：HBuilderX
 
 ## 项目结构
+```plaintext
 detector/
 ├── pages/                # 页面目录
 │   ├── history/          # 历史记录页面
@@ -27,6 +28,7 @@ detector/
 ├── static/               # 静态资源
 ├── uni_modules/          # uni-app模块
 └── unpackage/            # 构建输出目录
+```
 
 ## 页面说明
 
