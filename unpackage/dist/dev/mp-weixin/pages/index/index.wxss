@@ -7,16 +7,16 @@
     padding: 30rpx;
 }
 .progressBox.data-v-1cf27b2a {
-      position: relative;
-      width: 300rpx;
-      height: 300rpx;
-      margin: 0 auto;
-      margin: 30rpx;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    position: relative;
+    width: 300rpx;
+    height: 300rpx;
+    margin: 0 auto;
+    margin: 30rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-.description.data-v-1cf27b2a{
+.description.data-v-1cf27b2a {
     font-size: 40rpx;
     margin: 30rpx;
 }
@@ -30,7 +30,7 @@ button.data-v-1cf27b2a {
     line-height: 100rpx;
     border-radius: 50rpx;
     font-size: 36rpx;
-    margin-top: 50rpx;
+    margin-top: 30rpx;
 }
 .upload-btn.data-v-1cf27b2a {
     background-color: #007AFF;
@@ -43,4 +43,8 @@ button.data-v-1cf27b2a {
     background-color: #34C759;
     color: white;
     margin-top: 100rpx;
+}
+.steps.data-v-1cf27b2a {
+    margin-top: 30rpx;
+    width: 60%;
 }

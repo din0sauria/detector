@@ -1,7 +1,12 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+if (!Array) {
+  const _easycom_uni_steps2 = common_vendor.resolveComponent("uni-steps");
+  _easycom_uni_steps2();
+}
+const _easycom_uni_steps = () => "../../uni_modules/uni-steps/components/uni-steps/uni-steps.js";
 if (!Math) {
-  ProgressCircleBar();
+  (ProgressCircleBar + _easycom_uni_steps)();
 }
 const ProgressCircleBar = () => "./ring.js";
 const _sfc_main = {
@@ -10,6 +15,43 @@ const _sfc_main = {
     const percent = common_vendor.ref(0);
     const loading = common_vendor.ref(false);
     const name = common_vendor.ref("未上传文件");
+    let timer = null;
+    const stepOptions = [
+      {
+        title: "请选择音频文件"
+      },
+      {
+        title: "音频加密上传中"
+      },
+      {
+        title: "音频信号预处理中"
+      },
+      {
+        title: "加载深度伪造检测模型中"
+      },
+      {
+        title: "声学特征检测中"
+      },
+      {
+        title: "音频检测完成"
+      }
+    ];
+    let currentStateIndex = common_vendor.ref(0);
+    const startProgress = () => {
+      currentStateIndex.value = 0;
+      timer = setInterval(() => {
+        if (currentStateIndex.value < stepOptions.length - 2) {
+          currentStateIndex.value++;
+        }
+      }, 3e3);
+    };
+    const stopProgress = () => {
+      clearInterval(timer);
+      currentStateIndex.value = stepOptions.length - 1;
+    };
+    common_vendor.onUnmounted(() => {
+      clearInterval(timer);
+    });
     const progressColor = common_vendor.computed(() => {
       const green = [0, 255, 0];
       const red = [255, 0, 0];
@@ -17,7 +59,6 @@ const _sfc_main = {
       const g = Math.round(red[1] * (percent.value / 100) + green[1] * (1 - percent.value / 100));
       const b = Math.round(red[2] * (percent.value / 100) + green[2] * (1 - percent.value / 100));
       const hex = (r << 16 | g << 8 | b).toString(16).padStart(6, "0");
-      common_vendor.index.__f__("log", "at pages/index/index.vue:60", `#${hex}`);
       if (percent.value < 45) {
         return ["#72d555", `#${hex}`];
       } else {
@@ -36,8 +77,10 @@ const _sfc_main = {
           return;
         name.value = res.tempFiles[0].name;
         loading.value = true;
+        startProgress();
+        common_vendor.index.__f__("log", "at pages/index/index.vue:119", res.tempFiles[0].path);
         common_vendor.index.uploadFile({
-          url: "http://110.41.61.229:3006/common/upload",
+          url: "https://whusafeear.top/common/upload",
           filePath: res.tempFiles[0].path,
           name: "file",
           formData: {
@@ -66,24 +109,21 @@ const _sfc_main = {
               title: "上传失败",
               icon: "error"
             });
-            common_vendor.index.__f__("error", "at pages/index/index.vue:116", "上传失败:", err);
+            common_vendor.index.__f__("error", "at pages/index/index.vue:154", "上传失败:", err);
           },
           complete: () => {
             loading.value = false;
+            stopProgress();
           }
         });
       } catch (err) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:123", "文件选择错误:", err);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:162", "文件选择错误:", err);
         common_vendor.index.showToast({
           title: "文件选择失败",
           icon: "error"
         });
+        stopProgress();
       }
-    };
-    const goToRecord = () => {
-      common_vendor.index.navigateTo({
-        url: "/pages/record/record"
-      });
     };
     const saveHistory = (data) => {
       let history = common_vendor.index.getStorageSync("detectHistory") || [];
@@ -106,7 +146,12 @@ const _sfc_main = {
         d: loading.value,
         e: loading.value,
         f: common_vendor.o(handleUpload),
-        g: common_vendor.o(goToRecord)
+        g: common_vendor.p({
+          options: stepOptions,
+          active: common_vendor.unref(currentStateIndex),
+          ["active-color"]: "#007AFF",
+          direction: "column"
+        })
       };
     };
   }

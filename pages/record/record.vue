@@ -1,7 +1,5 @@
 <template>
   <view class="container">
-    <!-- 标题 -->
-    <view class="title">声音录制</view>
 
     <!-- 时间显示 -->
     <view class="time-display">
@@ -13,7 +11,7 @@
     </view>
 
     <!-- 波形可视化 -->
-<!--    <view class="visualizer" v-if="state !== 0">
+    <!--    <view class="visualizer" v-if="state !== 0">
       <view v-for="(bar, index) in visualizerBars" :key="index" class="bar" :style="{ height: bar.height + 'px' }">
       </view>
     </view> -->
@@ -48,24 +46,23 @@
 
     </view>
     <view style="margin-top: 30rpx;">
-      <text style="font-size: 28rpx; color: #2c3e50;">云端检测伪造概率：<text :style="{color: probabilityColor,'font-size':'36rpx'} ">{{result}}%</text></text>
+      <text style="font-size: 28rpx; color: #2c3e50;">云端检测伪造概率：<text
+          :style="{color: probabilityColor,'font-size':'36rpx'} ">{{result}}%</text></text>
     </view>
     <!-- 添加uniapp进度条 -->
     <view style="width: 80%; margin-top: 20rpx;">
-      <progress 
-        :percent="result" 
-        stroke-width="12px" 
-        :activeColor="probabilityColor" 
-        backgroundColor="#e5e5e5" 
-        border-radius="6px"
-        active 
-      />
+      <progress :percent="result" stroke-width="12px" :activeColor="probabilityColor" backgroundColor="#e5e5e5"
+        border-radius="6px" active />
+    </view>
+
+    <!-- 添加步骤条 -->
+    <view class="steps">
+      <uni-steps :options="stepOptions" :active="currentStateIndex" active-color="#007AFF"
+        direction="column"></uni-steps>
     </view>
   </view>
-
-
-
 </template>
+
 <script setup>
   import {
     ref,
@@ -214,13 +211,13 @@
   })
 
   // 新增可视化数据
-  const visualizerBars = ref(
-    Array.from({
-      length: 15
-    }, () => ({
-      height: Math.random() * 30 + 10
-    }))
-  )
+  // const visualizerBars = ref(
+  //   Array.from({
+  //     length: 15
+  //   }, () => ({
+  //     height: Math.random() * 30 + 10
+  //   }))
+  // )
 
   // 状态提示消息
   const statusMessage = computed(() => {
@@ -236,25 +233,27 @@
 
   const uploadFile = async () => {
     if (!tempFilePath.value) return
-
+    startProgress()
     uni.showLoading({
       title: '上传中...',
       mask: true
     })
 
     try {
+      console.log(tempFilePath.value)
       const res = await uni.uploadFile({
-        url: 'http://110.41.61.229:3006/common/upload', // 替换为实际接口
+        url: 'https://whusafeear.top/common/upload', // 替换为实际接口
         filePath: tempFilePath.value,
         name: 'file',
         formData: {
           'content-type': 'multipart/form-data'
-        }
+        },
       })
-      console.log(res.data)
+      console.log(res)
       const receive = JSON.parse(res.data)
+      console.log(receive)
       result.value = Number((parseFloat(receive.probability) * 100).toFixed(2))
-      
+
       // 保存到历史记录
       saveHistory({
         fileName: '录音文件',
@@ -262,11 +261,11 @@
         result: result.value,
         time: new Date().toLocaleString()
       })
-
+      stopProgress()
     } catch (error) {
       uni.showModal({
         title: '上传失败',
-        content: error.message,
+        content: error || 'fail',
         showCancel: false
       })
     } finally {
@@ -292,6 +291,48 @@
     const hex = (r << 16 | g << 8 | b).toString(16).padStart(6, "0");
     return `#${hex}`;
   });
+
+  // 从 index.vue 复制过来的步骤条相关数据和方法
+  let timerForSteps = null
+  const stepOptions = [{
+      title: '请选择音频文件'
+    },
+    {
+      title: '音频加密上传中'
+    },
+    {
+      title: '音频信号预处理中'
+    },
+    {
+      title: '加载深度伪造检测模型中'
+    },
+    {
+      title: '声学特征检测中'
+    },
+    {
+      title: '音频检测完成'
+    }
+  ]
+
+  let currentStateIndex = ref(0)
+
+  const startProgress = () => {
+    currentStateIndex.value = 0
+    timerForSteps = setInterval(() => {
+      if (currentStateIndex.value < stepOptions.length - 2) {
+        currentStateIndex.value++
+      }
+    }, 3000)
+  }
+
+  const stopProgress = () => {
+    clearInterval(timerForSteps)
+    currentStateIndex.value = stepOptions.length - 1
+  }
+
+  onUnmounted(() => {
+    clearInterval(timerForSteps)
+  })
 </script>
 
 <style lang="scss" scoped>
@@ -438,28 +479,8 @@
     }
   }
 
-  .action-buttons {
-    margin-top: 40rpx;
-    display: flex;
-    gap: 40rpx;
-  }
-
-  .action-btn {
-    border-radius: 50rpx;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    gap: 10rpx;
-    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-
-    &[disabled] {
-      opacity: 0.5;
-      filter: grayscale(1);
-    }
-
-    text {
-      font-size: 28rpx;
-      color: #666;
-    }
+  .steps {
+    margin-top: 30rpx;
+    width: 60%;
   }
 </style>

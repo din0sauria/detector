@@ -122,24 +122,7 @@
     transform: scale(1);
 }
 }
-.action-buttons.data-v-ef6850c5 {
-  margin-top: 40rpx;
-  display: flex;
-  gap: 40rpx;
-}
-.action-btn.data-v-ef6850c5 {
-  border-radius: 50rpx;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  gap: 10rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-}
-.action-btn[disabled].data-v-ef6850c5 {
-  opacity: 0.5;
-  filter: grayscale(1);
-}
-.action-btn text.data-v-ef6850c5 {
-  font-size: 28rpx;
-  color: #666;
+.steps.data-v-ef6850c5 {
+  margin-top: 30rpx;
+  width: 60%;
 }

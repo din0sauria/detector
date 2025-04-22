@@ -2,11 +2,13 @@
 const common_vendor = require("../../common/vendor.js");
 if (!Array) {
   const _easycom_uni_icons2 = common_vendor.resolveComponent("uni-icons");
-  _easycom_uni_icons2();
+  const _easycom_uni_steps2 = common_vendor.resolveComponent("uni-steps");
+  (_easycom_uni_icons2 + _easycom_uni_steps2)();
 }
 const _easycom_uni_icons = () => "../../uni_modules/uni-icons/components/uni-icons/uni-icons.js";
+const _easycom_uni_steps = () => "../../uni_modules/uni-steps/components/uni-steps/uni-steps.js";
 if (!Math) {
-  _easycom_uni_icons();
+  (_easycom_uni_icons + _easycom_uni_steps)();
 }
 const _sfc_main = {
   __name: "record",
@@ -35,7 +37,7 @@ const _sfc_main = {
     };
     const updateTime = () => {
       if (!timeDisplay) {
-        common_vendor.index.__f__("error", "at pages/record/record.vue:115", "timeDisplay is undefined");
+        common_vendor.index.__f__("error", "at pages/record/record.vue:112", "timeDisplay is undefined");
         return;
       }
       const total = time.value || 0;
@@ -44,7 +46,7 @@ const _sfc_main = {
       timeDisplay.s = formatTime(Math.floor(total % 60));
     };
     const handleRecord = () => {
-      common_vendor.index.__f__("log", "at pages/record/record.vue:127", "handleRecord");
+      common_vendor.index.__f__("log", "at pages/record/record.vue:124", "handleRecord");
       switch (state.value) {
         case 0:
           startRecording();
@@ -113,13 +115,6 @@ const _sfc_main = {
     common_vendor.computed(() => {
       return ["开始录音", "暂停录音", "继续录音"][state.value];
     });
-    common_vendor.ref(
-      Array.from({
-        length: 15
-      }, () => ({
-        height: Math.random() * 30 + 10
-      }))
-    );
     const statusMessage = common_vendor.computed(() => {
       return [
         "点击红色按钮开始录音",
@@ -131,13 +126,15 @@ const _sfc_main = {
     const uploadFile = async () => {
       if (!tempFilePath.value)
         return;
+      startProgress();
       common_vendor.index.showLoading({
         title: "上传中...",
         mask: true
       });
       try {
+        common_vendor.index.__f__("log", "at pages/record/record.vue:243", tempFilePath.value);
         const res = await common_vendor.index.uploadFile({
-          url: "http://110.41.61.229:3006/common/upload",
+          url: "https://whusafeear.top/common/upload",
           // 替换为实际接口
           filePath: tempFilePath.value,
           name: "file",
@@ -145,8 +142,9 @@ const _sfc_main = {
             "content-type": "multipart/form-data"
           }
         });
-        common_vendor.index.__f__("log", "at pages/record/record.vue:254", res.data);
+        common_vendor.index.__f__("log", "at pages/record/record.vue:252", res);
         const receive = JSON.parse(res.data);
+        common_vendor.index.__f__("log", "at pages/record/record.vue:254", receive);
         result.value = Number((parseFloat(receive.probability) * 100).toFixed(2));
         saveHistory({
           fileName: "录音文件",
@@ -154,10 +152,11 @@ const _sfc_main = {
           result: result.value,
           time: (/* @__PURE__ */ new Date()).toLocaleString()
         });
+        stopProgress();
       } catch (error) {
         common_vendor.index.showModal({
           title: "上传失败",
-          content: error.message,
+          content: error || "fail",
           showCancel: false
         });
       } finally {
@@ -179,6 +178,43 @@ const _sfc_main = {
       const b = Math.round(red[2] * (result.value / 100) + green[2] * (1 - result.value / 100));
       const hex = (r << 16 | g << 8 | b).toString(16).padStart(6, "0");
       return `#${hex}`;
+    });
+    let timerForSteps = null;
+    const stepOptions = [
+      {
+        title: "请选择音频文件"
+      },
+      {
+        title: "音频加密上传中"
+      },
+      {
+        title: "音频信号预处理中"
+      },
+      {
+        title: "加载深度伪造检测模型中"
+      },
+      {
+        title: "声学特征检测中"
+      },
+      {
+        title: "音频检测完成"
+      }
+    ];
+    let currentStateIndex = common_vendor.ref(0);
+    const startProgress = () => {
+      currentStateIndex.value = 0;
+      timerForSteps = setInterval(() => {
+        if (currentStateIndex.value < stepOptions.length - 2) {
+          currentStateIndex.value++;
+        }
+      }, 3e3);
+    };
+    const stopProgress = () => {
+      clearInterval(timerForSteps);
+      currentStateIndex.value = stepOptions.length - 1;
+    };
+    common_vendor.onUnmounted(() => {
+      clearInterval(timerForSteps);
     });
     return (_ctx, _cache) => {
       return {
@@ -213,7 +249,13 @@ const _sfc_main = {
         q: common_vendor.t(result.value),
         r: probabilityColor.value,
         s: result.value,
-        t: probabilityColor.value
+        t: probabilityColor.value,
+        v: common_vendor.p({
+          options: stepOptions,
+          active: common_vendor.unref(currentStateIndex),
+          ["active-color"]: "#007AFF",
+          direction: "column"
+        })
       };
     };
   }

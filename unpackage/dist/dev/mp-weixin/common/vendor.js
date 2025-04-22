@@ -6909,9 +6909,9 @@ function initOnError() {
   };
 }
 function initRuntimeSocketService() {
-  const hosts = "192.168.254.1,192.168.142.1,10.138.237.210,127.0.0.1";
+  const hosts = "192.168.254.1,192.168.142.1,10.135.24.71,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_MrDvgV";
+  const id = "mp-weixin_YvnjRu";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -10768,4 +10768,5 @@ exports.ref = ref;
 exports.resolveComponent = resolveComponent;
 exports.s = s$1;
 exports.t = t$1;
+exports.unref = unref;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/common/vendor.js.map
