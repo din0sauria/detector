@@ -107,7 +107,7 @@
       const res = await uni.chooseMessageFile({
         count: 1,
         type: 'file',
-        extension: ['wav', 'mp3', 'm4a']
+        extension: ['wav', 'mp3', 'm4a','flac','aac']
       })
 
       if (!res?.tempFiles?.[0]) return
@@ -120,9 +120,12 @@
 
       // 文件上传
       uni.uploadFile({
-        url: 'https://whusafeear.top/common/upload',
+        url: 'https://whusafeear.top:3006/common/upload',
         filePath: res.tempFiles[0].path,
         name: 'file',
+        header: {
+          // 'Transfer-Encoding':'chunked'
+        },
         formData: {
           'content-type': 'multipart/form-data'
         },

@@ -126,3 +126,6 @@
   margin-top: 30rpx;
   width: 60%;
 }
+.action-btn.data-v-ef6850c5 {
+  border-radius: 50rpx;
+}

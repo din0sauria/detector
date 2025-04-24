@@ -134,7 +134,7 @@ const _sfc_main = {
       try {
         common_vendor.index.__f__("log", "at pages/record/record.vue:243", tempFilePath.value);
         const res = await common_vendor.index.uploadFile({
-          url: "https://whusafeear.top/common/upload",
+          url: "https://whusafeear.top:3006/common/upload",
           // 替换为实际接口
           filePath: tempFilePath.value,
           name: "file",

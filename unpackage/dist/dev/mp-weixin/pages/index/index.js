@@ -71,7 +71,7 @@ const _sfc_main = {
         const res = await common_vendor.index.chooseMessageFile({
           count: 1,
           type: "file",
-          extension: ["wav", "mp3", "m4a"]
+          extension: ["wav", "mp3", "m4a", "flac", "aac"]
         });
         if (!((_a = res == null ? void 0 : res.tempFiles) == null ? void 0 : _a[0]))
           return;
@@ -80,9 +80,12 @@ const _sfc_main = {
         startProgress();
         common_vendor.index.__f__("log", "at pages/index/index.vue:119", res.tempFiles[0].path);
         common_vendor.index.uploadFile({
-          url: "https://whusafeear.top/common/upload",
+          url: "https://whusafeear.top:3006/common/upload",
           filePath: res.tempFiles[0].path,
           name: "file",
+          header: {
+            // 'Transfer-Encoding':'chunked'
+          },
           formData: {
             "content-type": "multipart/form-data"
           },
@@ -109,7 +112,7 @@ const _sfc_main = {
               title: "上传失败",
               icon: "error"
             });
-            common_vendor.index.__f__("error", "at pages/index/index.vue:154", "上传失败:", err);
+            common_vendor.index.__f__("error", "at pages/index/index.vue:157", "上传失败:", err);
           },
           complete: () => {
             loading.value = false;
@@ -117,7 +120,7 @@ const _sfc_main = {
           }
         });
       } catch (err) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:162", "文件选择错误:", err);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:165", "文件选择错误:", err);
         common_vendor.index.showToast({
           title: "文件选择失败",
           icon: "error"

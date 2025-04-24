@@ -242,7 +242,7 @@
     try {
       console.log(tempFilePath.value)
       const res = await uni.uploadFile({
-        url: 'https://whusafeear.top/common/upload', // 替换为实际接口
+        url: 'https://whusafeear.top:3006/common/upload', // 替换为实际接口
         filePath: tempFilePath.value,
         name: 'file',
         formData: {
@@ -482,5 +482,9 @@
   .steps {
     margin-top: 30rpx;
     width: 60%;
+  }
+  
+  .action-btn{
+    border-radius: 50rpx;
   }
 </style>
